@@ -17,7 +17,7 @@ const PasswordInput = ({ value, onChange, placeholder }) => {
             onChange={onChange}
             type={isShowPassword ? "text" : "password"} 
             placeholder={placeholder || "Password"}
-            className='w-full bg-transparent outline-none p-1 rounded'
+            className='w-full bg-transparent outline-none p-2 rounded'
         />
         {isShowPassword ? (
         <IoMdEyeOff

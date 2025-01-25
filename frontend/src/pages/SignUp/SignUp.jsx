@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import PasswordInput from "../../components/PasswordInput";
 
 const SignUp = () => {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -16,6 +17,11 @@ const SignUp = () => {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+
+    if (!username) {
+        setError("Please enter the username.");
+        return;
+    }
 
     if (!validateEmail(email)) {
       setError("Please enter a valid email address");
@@ -44,14 +50,22 @@ const SignUp = () => {
       <div className="flex items-center justify-center mt-28">
         <form
           onSubmit={handleSignUp}
-          className="border-2 h-[400px] w-[300px] md:w-[400px]  flex flex-col justify-center p-4 gap-10 rounded-lg shadow-lg"
+          className="border-2 h-[480px] w-[300px] md:w-[400px]  flex flex-col justify-center p-4 gap-8 rounded-lg shadow-lg"
         >
           <h1 className="text-3xl font-semibold text-center">Sign Up</h1>
 
           <input
             type="text"
+            placeholder="username"
+            className="border p-2 px-4 rounded w-full"
+            value={name}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+
+          <input
+            type="text"
             placeholder="Email"
-            className="border p-1 px-4 rounded w-full"
+            className="border p-2 px-4 rounded w-full"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -61,7 +75,7 @@ const SignUp = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          {error && <p className="text-red-600 text-xs pb-1">{error}</p>}
+          {error && <p className="text-red-600 text-sm pb-1">{error}</p>}
 
           <button
             type="submit"
@@ -70,7 +84,7 @@ const SignUp = () => {
             Sign up
           </button>
 
-          <p className="text-xs sm:text-base">
+          <p className="text-xs sm:text-base text-center">
             Already have an account?{" "}
             <Link to="/login" className="text-blue-500 underline">
               Login

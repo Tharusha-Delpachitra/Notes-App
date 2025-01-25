@@ -44,14 +44,14 @@ const Login = () => {
       <div className="flex items-center justify-center mt-28">
         <form
           onSubmit={handleLogin}
-          className="border-2 h-[400px] w-[300px] md:w-[400px] flex flex-col justify-center p-4 gap-10 rounded-lg shadow-lg"
+          className="border-2 h-[400px] w-[300px] md:w-[400px] flex flex-col justify-center p-4 gap-8 rounded-lg shadow-lg"
         >
           <h1 className="text-3xl font-semibold text-center">Login</h1>
 
           <input
             type="text"
             placeholder="Email"
-            className="border p-1 px-4 rounded w-full outline-none"
+            className="border p-2 px-4 rounded w-full outline-none"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -61,7 +61,7 @@ const Login = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          {error && <p className="text-red-600 text-xs pb-1">{error}</p>}
+          {error && <p className="text-red-600 text-sm pb-1">{error}</p>}
 
           <button
             type="submit"
@@ -70,7 +70,7 @@ const Login = () => {
             Login
           </button>
 
-          <p className="text-xs sm:text-base">
+          <p className="text-xs sm:text-base text-center">
             Not registered yet?{" "}
             <Link to="/signup" className="text-blue-500 underline">
               Create an Account
