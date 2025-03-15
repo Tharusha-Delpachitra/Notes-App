@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 mongoose.connect(config.connectionString);
 
 const User = require("./models/user.model");
+const Note = require("./models/note_model");
 
 const express = require("express");
 const cors = require("cors");
@@ -21,15 +22,16 @@ app.use(express.json());
 app.use(
     cors({
         origin: "*", // Allows all origins (use specific origin(s) for better security)
+        origin: "http://localhost:5173"
     })
 );
 
 // Route for the root URL
 app.get("/", (req, res) => {
-    res.send("Hello");
+    res.send(`Hello from port 8000`);
 });
 
-//Create-account
+// Route to handle registration
 app.post("/create-account", async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -75,6 +77,7 @@ app.post("/create-account", async (req, res) => {
   });
 });
 
+// Route to handle login
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
@@ -113,6 +116,123 @@ app.post("/login", async (req, res) => {
         .status(400)
         .json({ error: true, message: "Invalid email or password" });
     }
+});
+
+// Route to handle addition of notes
+app.post('/add-note', authenticateToken, async (req, res) => {
+  const { title, content, tags } = req.body;
+  const { user } = req;
+
+  if (!title) {
+    return res.status(400).json({ error: true, message: "Title is required" });
+  }
+
+  if (!content) {
+    return res.status(400).json({ error: true, message: "Content is required" });
+  }
+
+  try {
+    const note = new Note({
+      title,
+      content,
+      tags: tags || [],
+      userId: user._id,
+    });
+
+    await note.save();
+
+    return res.json({
+      error: false,
+      note,
+      message: "Note added successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: "Internal Server Error",
+    });
+  }
+});
+
+app.get('/get-notes', authenticateToken, async (req, res) => {
+  const { user } = req;
+  
+  try {
+    const notes = await Note.find({ userId: user._id });
+    return res.json({
+      error: false,
+      notes,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: "Internal Server Error",
+    });
+  }
+});
+
+// Route to update an existing note
+app.put('/update-note/:id', authenticateToken, async (req, res) => {
+  const { title, content, tags } = req.body;
+  const { user } = req;
+  const noteId = req.params.id;
+
+  if (!title || !content) {
+    return res.status(400).json({ error: true, message: "Title and content are required" });
+  }
+
+  try {
+    const note = await Note.findOne({ _id: noteId, userId: user._id });
+    if (!note) {
+      return res.status(404).json({ error: true, message: "Note not found" });
+    }
+
+    note.title = title;
+    note.content = content;
+    note.tags = tags || note.tags;
+
+    await note.save();
+
+    return res.json({
+      error: false,
+      note,
+      message: "Note updated successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: "Internal Server Error",
+    });
+  }
+});
+
+// Route to delete a note
+app.delete('/delete-note/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { user } = req;
+
+  try {
+    // Find the note by id and ensure it belongs to the authenticated user
+    const note = await Note.findOne({ _id: id, userId: user._id });
+    
+    if (!note) {
+      return res.status(404).json({ error: true, message: "Note not found or unauthorized" });
+    }
+
+    // Delete the note
+    await Note.deleteOne({ _id: id });
+
+    return res.json({
+      error: false,
+      message: "Note deleted successfully"
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: true,
+      message: "Internal Server Error"
+    });
+  }
 });
 
 // Start the server on port 8000
