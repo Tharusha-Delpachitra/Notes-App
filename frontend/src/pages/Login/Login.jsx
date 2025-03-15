@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Navbar from "../../components/Navbar";
 import { Link } from "react-router-dom";
-import PasswordInput from "../../components/PasswordInput";
+import axios from "axios"; // Import axios
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -32,9 +32,22 @@ const Login = () => {
       return;
     }
 
-    setError("");
+    try {
+      const response = await axios.post("http://localhost:8000/login", {
+        email,
+        password,
+      });
 
-    //Login API call
+      if (response.data.error) {
+        setError(response.data.message);
+      } else {
+        // Store the access token in localStorage or state and redirect
+        localStorage.setItem("accessToken", response.data.accessToken);
+        window.location.href = "/dashboard"; // Redirect to dashboard or home page
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    }
   };
 
   return (
@@ -56,7 +69,10 @@ const Login = () => {
             onChange={(e) => setEmail(e.target.value)}
           />
 
-          <PasswordInput
+          <input
+            type="password"
+            placeholder="Password"
+            className="border p-2 px-4 rounded w-full outline-none"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />

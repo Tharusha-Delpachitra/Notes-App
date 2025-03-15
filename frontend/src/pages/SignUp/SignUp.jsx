@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Navbar from "../../components/Navbar";
 import { Link } from "react-router-dom";
-import PasswordInput from "../../components/PasswordInput";
+import axios from "axios"; // Import axios
 
 const SignUp = () => {
   const [username, setUsername] = useState("");
@@ -19,8 +19,8 @@ const SignUp = () => {
     e.preventDefault();
 
     if (!username) {
-        setError("Please enter the username.");
-        return;
+      setError("Please enter the username.");
+      return;
     }
 
     if (!validateEmail(email)) {
@@ -38,9 +38,22 @@ const SignUp = () => {
       return;
     }
 
-    setError("");
+    try {
+      const response = await axios.post("http://localhost:8000/create-account", {
+        username,
+        email,
+        password,
+      });
 
-    //Signup API call
+      if (response.data.error) {
+        setError(response.data.message);
+      } else {
+        // After successful signup, redirect to login page
+        window.location.href = "/login"; // Redirect to login page
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    }
   };
 
   return (
@@ -50,7 +63,7 @@ const SignUp = () => {
       <div className="flex items-center justify-center mt-28">
         <form
           onSubmit={handleSignUp}
-          className="border-2 h-[480px] w-[300px] md:w-[400px]  flex flex-col justify-center p-4 gap-8 rounded-lg shadow-lg"
+          className="border-2 h-[480px] w-[300px] md:w-[400px] flex flex-col justify-center p-4 gap-8 rounded-lg shadow-lg"
         >
           <h1 className="text-3xl font-semibold text-center">Sign Up</h1>
 
@@ -58,7 +71,7 @@ const SignUp = () => {
             type="text"
             placeholder="username"
             className="border p-2 px-4 rounded w-full"
-            value={name}
+            value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
 
@@ -70,7 +83,10 @@ const SignUp = () => {
             onChange={(e) => setEmail(e.target.value)}
           />
 
-          <PasswordInput
+          <input
+            type="password"
+            placeholder="Password"
+            className="border p-2 px-4 rounded w-full"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
