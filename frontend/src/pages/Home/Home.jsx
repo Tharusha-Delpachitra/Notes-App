@@ -8,8 +8,10 @@ import axios from 'axios';
 const Home = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [notes, setNotes] = useState([]);
+    const [filteredNotes, setFilteredNotes] = useState([]); // State to store filtered notes
     const [loading, setLoading] = useState(true);
-    const [currentNote, setCurrentNote] = useState(null); // For editing existing notes
+    const [currentNote, setCurrentNote] = useState(null);
+    const [searchQuery, setSearchQuery] = useState(""); // State to store search query
 
     useEffect(() => {
         // Fetch notes from the backend
@@ -21,6 +23,7 @@ const Home = () => {
                     }
                 });
                 setNotes(response.data.notes);
+                setFilteredNotes(response.data.notes); // Initially set filtered notes to all notes
                 setLoading(false);
             } catch (error) {
                 console.error('Error fetching notes', error);
@@ -30,7 +33,7 @@ const Home = () => {
 
         fetchNotes();
     }, []);
-    
+
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
@@ -91,20 +94,33 @@ const Home = () => {
     };
 
     const handlePinNote = (noteId) => {
-        setNotes(notes.map(note => 
+        setNotes(notes.map(note =>
             note._id === noteId ? { ...note, isPinned: !note.isPinned } : note
         ));
     };
 
-    const sortedNotes = [...notes].sort((a, b) => {
+    // Handle search functionality
+    const handleSearch = (query) => {
+        console.log('Search Query:', query); // Add console log for debugging
+        setSearchQuery(query);
+        const filtered = notes.filter(note => 
+            note.title.toLowerCase().includes(query.toLowerCase()) || 
+            note.content.toLowerCase().includes(query.toLowerCase()) || 
+            note.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
+        );
+        setFilteredNotes(filtered);
+    };
+
+    const sortedNotes = [...filteredNotes].sort((a, b) => {
         if (a.isPinned && !b.isPinned) return -1;
         if (!a.isPinned && b.isPinned) return 1;
-        return new Date(b.createdOn) - new Date(a.createdOn); 
+        return new Date(b.createdOn) - new Date(a.createdOn);
     });
 
     return (
         <>
-            <Navbar />
+            <Navbar handleSearch={handleSearch} /> {/* Pass the handleSearch function to Navbar */}
+
             <button 
                 className='bg-blue-500 flex items-center rounded font-semibold text-white p-2 px-4 mt-10 ml-5 md:ml-20 lg:ml-40 hover:bg-blue-700'
                 onClick={() => handleOpenModal()}
@@ -134,7 +150,7 @@ const Home = () => {
                 <div className="flex justify-center mt-20">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mt-20"></div>
                 </div>
-            ) : notes.length === 0 ? (
+            ) : filteredNotes.length === 0 ? (
                 <div className="text-center mt-20 text-gray-500">
                     No notes found. Click the "ADD NOTE" button to create your first note.
                 </div>
